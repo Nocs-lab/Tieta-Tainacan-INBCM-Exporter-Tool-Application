@@ -2,7 +2,7 @@
 /*
 Plugin Name: Tieta - Tainacan INBCM Exporter Tool/Application
 Description: Adds a custom exporter to Tainacan for museum inventory.
-Version: 1.0
+Version: beta.0.1
 Author: Douglas de Araújo
 Author URI: github.com/everbero
 License: GPLv2 or later
