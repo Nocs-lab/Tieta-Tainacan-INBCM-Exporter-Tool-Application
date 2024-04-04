@@ -14,6 +14,9 @@ if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly
 }
 
+// Include Composer autoload to load external dependencies
+require_once plugin_dir_path(__FILE__) . 'vendor/autoload.php';
+
 function TietaTainacanSuper() {
     // Initialization code and hooks here
     static $plugin;
