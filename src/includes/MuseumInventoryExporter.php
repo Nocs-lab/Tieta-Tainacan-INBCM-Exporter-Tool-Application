@@ -1,6 +1,9 @@
 <?php
 namespace TietaTainacan;
 use Tainacan\Exporter\Exporter;
+use Box\Spout\Writer\Common\Creator\WriterEntityFactory;
+use Box\Spout\Reader\Common\Creator\ReaderEntityFactory;
+use Box\Spout\Common\Entity\Row;
 
 // Prevent direct access
 if (!defined('ABSPATH')) {
@@ -9,24 +12,89 @@ if (!defined('ABSPATH')) {
 
 class MuseumInventoryExporter extends Exporter {
     private $collection_name;
+    private $writer;
+    private $file_path;
+    private $tempFilePath;
 
     public function __construct($attributes = array()) {
         parent::__construct($attributes);
-        // $this->set_accepted_mapping_methods('any'); // set all method to mapping
-        // $this->accept_no_mapping = true;
+
+        // Define o nome do arquivo baseado na coleção atual
         if ($current_collection = $this->get_current_collection_object()) {
             $name = $current_collection->get_name();
-            $this->collection_name = sanitize_title($name) . "_csv_export.csv";
+            $this->collection_name = sanitize_title($name) . "_export.xlsx"; // Atualizado para refletir o formato XLSX
         } else {
-            $this->collection_name = "inbcm_export.csv";
+            $this->collection_name = "inbcm_export"; // Atualizado para refletir o formato XLSX
         }
 
-        // $this->set_accepted_mapping_methods('list', [ "dublin-core" ]); // set specific list of methods to mapping
+        // O writer será inicializado mais tarde, no momento adequado do processo de exportação
+        $this->writer = null;
+        $upload_dir = wp_upload_dir();
+        $this->filePath = $upload_dir['path'] . '/' . $this->collection_name;
+        $this->tempFilePath = "";
+
+        // As opções abaixo podem ser removidas ou adaptadas se não mais relevantes para a exportação em XLSX
         $this->set_default_options([
             'delimiter' => ',',
             'multivalued_delimiter' => '||',
             'enclosure' => '"',
         ]);
+    }
+
+    public function initializeWriter() {
+        
+        // Verifica se o arquivo já existe para ler os dados existentes
+        if (file_exists($this->filePath)) {
+            $tempFilePath = "";
+            // Cria um novo arquivo temporário para escrita
+            $tempFilePath = $this->filePath . "temp_" .  uniqid() . ".xlsx";
+    
+            $reader = ReaderEntityFactory::createReaderFromFile($this->filePath);
+            $reader->open($this->filePath);
+    
+            $writer = WriterEntityFactory::createXLSXWriter();
+            $writer->openToFile($tempFilePath);
+    
+            // let's read the entire spreadsheet...
+            foreach ($reader->getSheetIterator() as $sheetIndex => $sheet) {
+                // Add sheets in the new file, as we read new sheets in the existing one
+                if ($sheetIndex !== 1) {
+                    $writer->addNewSheetAndMakeItCurrent();
+                }
+
+                foreach ($sheet->getRowIterator() as $row) {
+                    // ... and copy each row into the new spreadsheet
+                    $writer->addRow($row);
+                }
+            }
+    
+            $reader->close();
+        } else {
+            // Se o arquivo não existir, cria um novo arquivo
+            $writer = WriterEntityFactory::createXLSXWriter();
+            $writer->openToFile($this->filePath);
+        }
+    
+        $this->writer = $writer;
+        $this->tempFilePath = isset($tempFilePath) ? $tempFilePath : null;
+    }
+    
+    
+    
+    public function finalizeWriter() {
+        if (isset($this->writer)) {
+            $this->writer->close();
+    
+            // Se um arquivo temporário foi criado, substitua o arquivo original por este.
+            if ($this->tempFilePath) {
+                // Remove o arquivo original
+                if (file_exists($this->filePath)) {
+                    unlink($this->filePath);
+                }
+                // Renomeia o arquivo temporário para ser o arquivo final
+                rename($this->tempFilePath, $this->filePath);
+            }
+        }
     }
 
     public function filter_multivalue_separator($separator) {
@@ -37,77 +105,17 @@ class MuseumInventoryExporter extends Exporter {
         return '>>';
     }
 
-    public function process_item($item, $metadata) {
-
-        $line = [];
-
-        $line[] = $item->get_id();
-
-        add_filter('tainacan-item-metadata-get-multivalue-separator', [$this, 'filter_multivalue_separator'], 20);
-        add_filter('tainacan-terms-hierarchy-html-separator', [$this, 'filter_hierarchy_separator'], 20);
-
-        foreach ($metadata as $meta_key => $meta) {
-
-            // if (!$meta) means this metadata is not mapped in the collection so there is no value for it
-            // an empty value must be returned so the number of columns matches the header
-            if (!$meta || empty($meta->get_value())) {
-                $line[] = '';
-                continue;
+    private function get_date_value($meta) {
+        $metadatum = $meta->get_metadatum();
+        $date_value = 'ERROR ON FORMATING DATE';
+        if (is_object($metadatum)) {
+            $fto = $metadatum->get_metadata_type_object();
+            if (is_object($fto) && method_exists($fto, 'get_value_as_html')) {
+                $fto->output_date_format = 'Y-m-d';
+                $date_value = $fto->get_value_as_html($meta);
             }
-
-            if ($meta->get_metadatum()->get_metadata_type() == 'Tainacan\Metadata_Types\Relationship') {
-                $rel = $meta->get_value();
-                if (is_array($rel)) {
-                    $line[] = implode($this->get_option('multivalued_delimiter'), $rel);
-                } else {
-                    $line[] = $rel;
-                }
-
-            } elseif ($meta->get_metadatum()->get_metadata_type() == 'Tainacan\Metadata_Types\Compound') {
-                $line[] = $this->get_compound_metadata_cell($meta);
-            } elseif ($meta->get_metadatum()->get_metadata_type() == 'Tainacan\Metadata_Types\Date') {
-                $metadatum = $meta->get_metadatum();
-                $date_value = 'ERROR ON FORMATING DATE';
-                if (is_object($metadatum)) {
-                    $fto = $metadatum->get_metadata_type_object();
-                    if (is_object($fto)) {
-                        if (method_exists($fto, 'get_value_as_html')) {
-                            $fto->output_date_format = 'Y-m-d';
-                            $date_value = $fto->get_value_as_html($meta);
-                        }
-                    }
-                }
-                $line[] = $date_value;
-            } else {
-                $line[] = $meta->get_value_as_string();
-            }
-
         }
-
-        remove_filter('tainacan-item-metadata-get-multivalue-separator', [$this, 'filter_multivalue_separator']);
-        remove_filter('tainacan-terms-hierarchy-html-separator', [$this, 'filter_hierarchy_separator']);
-
-        $line[] = $item->get_status();
-
-        $line[] = $this->get_document_cell($item);
-
-        $line[] = $this->get_attachments_cell($item);
-
-        $line[] = $item->get_comment_status();
-
-        $line[] = $item->get_author_name();
-
-        $line[] = $item->get_creation_date();
-
-        $line[] = $this->get_author_name_last_modification($item->get_id());
-
-        $line[] = $item->get_modification_date();
-
-        $line[] = get_permalink($item->get_id());
-
-        $line_string = $this->str_putcsv($line, $this->get_option('delimiter'), $this->get_option('enclosure'));
-
-        $this->append_to_file($this->collection_name, $line_string . "\n");
+        return $date_value;
     }
 
     function get_compound_metadata_cell($meta) {
@@ -234,84 +242,6 @@ class MuseumInventoryExporter extends Exporter {
         return $desc_title_meta;
     }
 
-    public function output_header() {
-
-        $mapper = $this->get_current_mapper();
-
-        $line = ['special_item_id'];
-
-        if ($mapper) {
-
-            foreach ($mapper->metadata as $meta_slug => $meta) {
-                $line[] = $meta_slug;
-            }
-
-        } else {
-            if ($collection = $this->get_current_collection_object()) {
-
-                $metadata = $collection->get_metadata();
-                foreach ($metadata as $meta) {
-                    $desc_title_meta = $this->get_description_title_meta($meta);
-                    $line[] = $desc_title_meta;
-                }
-            }
-        }
-
-        $line[] = 'special_item_status';
-        $line[] = 'special_document';
-        $line[] = 'special_attachments';
-        $line[] = 'special_comment_status';
-        $line[] = 'author_name';
-        $line[] = 'creation_date';
-        $line[] = 'user_last_modified';
-        $line[] = 'modification_date';
-        $line[] = 'public_url';
-
-        $line_string = $this->str_putcsv($line, $this->get_option('delimiter'), $this->get_option('enclosure'));
-
-        $this->append_to_file($this->collection_name, $line_string . "\n");
-
-    }
-
-    public function output_footer() {
-        return false;
-    }
-
-    private function get_collections_names() {
-        $collections_names = [];
-        foreach ($this->collections as $col) {
-            $collection = \Tainacan\Repositories\Collections::get_instance()->fetch((int) $col['id'], 'OBJECT');
-            $collections_names[] = $collection->get_name();
-        }
-        return $collections_names;
-    }
-
-    /**
-     * When exporter is finished, gets the final output
-     */
-    public function get_output() {
-        $files = $this->get_output_files();
-
-        if (is_array($files) && isset($files[$this->collection_name])) {
-            $file = $files[$this->collection_name];
-            $current_user = wp_get_current_user();
-            $author_name = $current_user->user_login;
-
-            $message = __('Target collections:', 'tieta-tainacan');
-            $message .= " <b>" . implode(", ", $this->get_collections_names()) . "</b><br/>";
-            $message .= __('Exported by:', 'tieta-tainacan');
-            $message .= " <b> $author_name </b><br/>";
-            $message .= __('Your CSV file is ready! Access it in the link below:', 'tieta-tainacan');
-            $message .= '<br/><br/>';
-            $message .= '<a target="_blank" href="' . $file['url'] . '">Download</a>';
-
-            return $message;
-
-        } else {
-            $this->add_error_log('Output file not found! Maybe you need to correct the permissions of your upload folder');
-        }
-    }
-
     function str_putcsv($input, $delimiter = ',', $enclosure = '"') {
         // Open a memory "file" for read/write...
         $fp = fopen('php://temp', 'r+');
@@ -323,8 +253,152 @@ class MuseumInventoryExporter extends Exporter {
         $data = fread($fp, $fstats['size']);
         fclose($fp);
         return rtrim($data, "\n");
+    }   
+    
+    private function get_collections_names() {
+        $collections_names = [];
+        foreach ($this->collections as $col) {
+            $collection = \Tainacan\Repositories\Collections::get_instance()->fetch((int) $col['id'], 'OBJECT');
+            $collections_names[] = $collection->get_name();
+        }
+        return $collections_names;
     }
 
+
+    public function process_item($item, $metadata) {
+        
+        // logs to error_log this call
+        error_log('Processing item ' . $item->get_id());
+
+        $line = [];
+    
+        $line[] = $item->get_id();
+    
+        add_filter('tainacan-item-metadata-get-multivalue-separator', [$this, 'filter_multivalue_separator'], 20);
+        add_filter('tainacan-terms-hierarchy-html-separator', [$this, 'filter_hierarchy_separator'], 20);
+    
+        foreach ($metadata as $meta_key => $meta) {
+            if (!$meta || empty($meta->get_value())) {
+                $line[] = '';
+                continue;
+            }
+    
+            if ($meta->get_metadatum()->get_metadata_type() == 'Tainacan\Metadata_Types\Relationship') {
+                $rel = $meta->get_value();
+                $line[] = is_array($rel) ? implode($this->get_option('multivalued_delimiter'), $rel) : $rel;
+            } elseif ($meta->get_metadatum()->get_metadata_type() == 'Tainacan\Metadata_Types\Compound') {
+                $line[] = $this->get_compound_metadata_cell($meta);
+            } elseif ($meta->get_metadatum()->get_metadata_type() == 'Tainacan\Metadata_Types\Date') {
+                $line[] = $this->get_date_value($meta); // Supondo que você tenha um método para formatar a data
+            } else {
+                $line[] = $meta->get_value_as_string();
+            }
+        }
+    
+        remove_filter('tainacan-item-metadata-get-multivalue-separator', [$this, 'filter_multivalue_separator']);
+        remove_filter('tainacan-terms-hierarchy-html-separator', [$this, 'filter_hierarchy_separator']);
+    
+        $line = array_merge($line, [
+            $item->get_status(),
+            $this->get_document_cell($item),
+            $this->get_attachments_cell($item),
+            $item->get_comment_status(),
+            $item->get_author_name(),
+            $item->get_creation_date(),
+            $this->get_author_name_last_modification($item->get_id()),
+            $item->get_modification_date(),
+            get_permalink($item->get_id())
+        ]);
+        // Verifique se $this->writer é uma instância do writer do Spout e está aberto
+        $this->initializeWriter();
+        $row = WriterEntityFactory::createRowFromArray($line);
+        $this->writer->addRow($row);
+        $this->finalizeWriter();
+   
+        
+    }
+    // o exportador deve implementar o método output_header
+    public function output_header() {
+        
+        $this->initializeWriter();
+
+        $mapper = $this->get_current_mapper();
+    
+        $headerRowContents = ['special_item_id'];
+    
+        if ($mapper) {
+            foreach ($mapper->metadata as $meta_slug => $meta) {
+                $headerRowContents[] = $meta_slug;
+            }
+        } else {
+            $collection = $this->get_current_collection_object();
+            if ($collection) {
+                $metadata = $collection->get_metadata();
+                foreach ($metadata as $meta) {
+                    $desc_title_meta = $this->get_description_title_meta($meta);
+                    $headerRowContents[] = $desc_title_meta;
+                }
+            }
+        }
+    
+        $headerRowContents = array_merge($headerRowContents, [
+            'special_item_status',
+            'special_document',
+            'special_attachments',
+            'special_comment_status',
+            'author_name',
+            'creation_date',
+            'user_last_modified',
+            'modification_date',
+            'public_url'
+        ]);
+    
+    
+        $headerRow = WriterEntityFactory::createRowFromArray($headerRowContents);
+        $this->writer->addRow($headerRow);
+
+        $this->finalizeWriter();
+       
+    }
+    
+    public function output_footer() {
+        // Este método será invocado no final da exportação de cada coleção
+        $this->finalizeWriter();
+    }
+    /**
+     * When exporter is finished, gets the final output
+     */
+    public function get_output() {
+
+            // Obtém o caminho base do diretório de uploads do WordPress
+            $upload_dir = wp_upload_dir();
+            $upload_path = $upload_dir['path'];
+            $file_name = $this->collection_name . '.xlsx';
+            $file_path = $upload_path . '/' . $file_name;
+    
+            // Verifica se o arquivo foi criado
+            if (file_exists($file_path)) {
+                $current_user = wp_get_current_user();
+                $author_name = $current_user->user_login;
+    
+                $file_url = $upload_dir['url'] . '/' . $file_name;
+    
+                $message = __('Target collections:', 'tieta-tainacan');
+                $message .= " <b>" . implode(", ", $this->get_collections_names()) . "</b><br/>";
+                $message .= __('Exported by:', 'tieta-tainacan');
+                $message .= " <b>$author_name</b><br/>";
+                $message .= __('Your XLSX file is ready! Access it in the link below:', 'tieta-tainacan');
+                $message .= '<br/><br/>';
+                $message .= '<a target="_blank" href="' . $file_url . '">Download</a>';
+    
+                return $message;
+            } else {
+                $this->add_error_log('Output file not found! Maybe you need to correct the permissions of your upload folder');
+                return __('Error creating the file. Check the permissions of your upload folder.', 'tieta-tainacan');
+            }
+
+    }
+    
     public function options_form() {
         ob_start();
         ?>
@@ -452,6 +526,6 @@ class MuseumInventoryExporter extends Exporter {
             </div>
 
           <?php
-return ob_get_clean();
+        return ob_get_clean();
     }
 }

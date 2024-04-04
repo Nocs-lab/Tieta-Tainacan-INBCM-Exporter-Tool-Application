@@ -1,0 +1,20 @@
+{
+    "name": "douglas/tieta-tainacan",
+    "description": "Plugin WordPress para exportação de dados no formato INBCM para o Tainacan",
+    "type": "project",
+    "license": "X11",
+    "autoload": {
+        "psr-4": {
+            "TietaTainacan\\": "src/includes/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Douglas",
+            "email": "douglas@3xweb.site"
+        }
+    ],
+    "require": {
+        "box/spout": "^3.3"
+    }
+}
