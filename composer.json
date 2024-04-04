@@ -1,0 +1,20 @@
+{
+    "name": "douglas/tieta-tainacan",
+    "description": "Plugin worpdress para exportão de dados no formato INBCM para o Tainacan",
+    "type": "project",
+    "license": "X11",
+    "autoload": {
+        "psr-4": {
+            "Douglas\\TietaTainacan\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Douglas",
+            "email": "douglas@3xweb.site"
+        }
+    ],
+    "require": {
+        "phpoffice/phpspreadsheet": "^2.0"
+    }
+}

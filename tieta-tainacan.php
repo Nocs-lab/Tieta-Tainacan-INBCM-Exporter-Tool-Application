@@ -78,9 +78,9 @@ function TietaTainacanSuper() {
                 // public includes goes here
                 if (is_plugin_active('tainacan/tainacan.php')) {
                     // Include the custom exporter and utility class files
-                    include_once plugin_dir_path(__FILE__) . 'includes/TietaExportHandler.php';
-                    include_once plugin_dir_path(__FILE__) . 'includes/MuseumInventoryExporter.php';
-                    // include_once plugin_dir_path(__FILE__) . 'includes/SpreadsheetGenerator.php';
+                    include_once plugin_dir_path(__FILE__) . 'src/includes/TietaExportHandler.php';
+                    include_once plugin_dir_path(__FILE__) . 'src/includes/MuseumInventoryExporter.php';
+                    // include_once plugin_dir_path(__FILE__) . 'src/includes/SpreadsheetGenerator.php';
 
                 }
             }
