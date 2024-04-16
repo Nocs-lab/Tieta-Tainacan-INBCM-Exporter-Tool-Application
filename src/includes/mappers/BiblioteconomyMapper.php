@@ -9,18 +9,68 @@ if (!defined('ABSPATH')) {
 
 
 class BiblioteconomyMapper extends Mapper {
-    public $name = 'Museum Inventory of Cultural Assets (INBCM)';
+    public $name = 'INCBM Biblioteconomy Mapper';
     public $slug = 'incbm-bible';
     public $metadata = [
-        'name' => [
-            'label'=> 'Name',
-            'URI'=> 'http://schema.org/name'
+        'numeroDeRegistro' => [
+            'label' => 'Nº de Registro',
         ],
-        'alternativeHeadline' => [
-            'label'=> 'Alternative Headline',
-            'URI'=> 'http://schema.org/alternativeHeadline'
+        'outrosNumeros' => [
+            'label' => 'Outros Números',
+        ],
+        'situacao' => [
+            'label' => 'Situação',
+        ],
+        'titulo' => [
+            'label' => 'Título',
+        ],
+        'tipo' => [
+            'label' => 'Tipo',
+        ],
+        'identificacaoDeResponsabilidade' => [
+            'label' => 'Identificação de responsabilidade',
+        ],
+        'localDeProducao' => [
+            'label' => 'Local de produção',
+        ],
+        'editora' => [
+            'label' => 'Editora',
+        ],
+        'dataDeProducao' => [
+            'label' => 'Data de Produção',
+        ],
+        'dimensaoFisica' => [
+            'label' => 'Dimensão física',
+        ],
+        'materialTecnica' => [
+            'label' => 'Material / Técnica',
+        ],
+        'encadernacao' => [
+            'label' => 'Encadernação',
+        ],
+        'resumoDescritivo' => [
+            'label' => 'Resumo Descritivo',
+        ],
+        'estadoDeConservacao' => [
+            'label' => 'Estado de Conservação',
+        ],
+        'assuntoPrincipal' => [
+            'label' => 'Assunto Principal',
+        ],
+        'assuntoCronologico' => [
+            'label' => 'Assunto Cronológico',
+        ],
+        'assuntoGeografico' => [
+            'label' => 'Assunto Geográfico',
+        ],
+        'condicoesDeReproducao' => [
+            'label' => 'Condições de Reprodução',
+        ],
+        'midiasRelacionadas' => [
+            'label' => 'Mídias Relacionadas',
         ],
     ];
+    
     public $allow_extra_fields = false;
     public $context_url = 'http://schema.org';
     public $type = 'INCBM';

@@ -9,18 +9,59 @@ if (!defined('ABSPATH')) {
 
 
 class ArchivologyMapper extends Mapper {
-    public $name = 'Schema.org Creative Works';
+    public $name = 'INCBM Archivology Mapper';
     public $slug = 'incbm-archive';
     public $metadata = [
-        'name' => [
-            'label'=> 'Name',
-            'URI'=> 'http://schema.org/name'
+        'codigoDeReferencia' => [
+            'label' => 'Cód. de Referência',
         ],
-        'alternativeHeadline' => [
-            'label'=> 'Alternative Headline',
-            'URI'=> 'http://schema.org/alternativeHeadline'
+        'titulo' => [
+            'label' => 'Título',
+        ],
+        'data' => [
+            'label' => 'Data',
+        ],
+        'nivelDeDescricao' => [
+            'label' => 'Nível de Descrição',
+        ],
+        'dimensaoESuporte' => [
+            'label' => 'Dimensão e suporte',
+        ],
+        'nomeDoProdutor' => [
+            'label' => 'Nome do Produtor',
+        ],
+        'historiaAdministrativaBiografia' => [
+            'label' => 'História administrativa / Biografia',
+        ],
+        'historiaArquivistica' => [
+            'label' => 'História Arquivística',
+        ],
+        'procedencia' => [
+            'label' => 'Procedência',
+        ],
+        'ambitoEConteudo' => [
+            'label' => 'Âmbito e Conteúdo',
+        ],
+        'sistemaDeArranjo' => [
+            'label' => 'Sistema de Arranjo',
+        ],
+        'condicoesDeReproducao' => [
+            'label' => 'Condições de Reprodução',
+        ],
+        'existenciaELocalizacaoDosOriginais' => [
+            'label' => 'Existência e Localização dos Originais',
+        ],
+        'notasSobreConservacao' => [
+            'label' => 'Notas sobre conservação',
+        ],
+        'pontosDeAcessoEIndexacaoDeAssuntos' => [
+            'label' => 'Pontos de acesso e indexação de assuntos',
+        ],
+        'midiasRelacionadas' => [
+            'label' => 'Mídias Relacionadas',
         ],
     ];
+    
     public $allow_extra_fields = false;
     public $context_url = 'http://schema.org';
     public $type = 'CreativeWork';

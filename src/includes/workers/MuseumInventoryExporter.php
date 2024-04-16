@@ -39,7 +39,8 @@ class MuseumInventoryExporter extends Exporter {
             'multivalued_delimiter' => '||',
             'enclosure' => '"',
         ]);
-        $this->set_accepted_mapping_methods('any');
+        $this->set_accepted_mapping_methods('list', "incbm-museum", ["incbm-museum", "incbm-library", "incbm-archive"]);
+        $this->accept_no_mapping = false;
     }
 
     public function initializeWriter() {

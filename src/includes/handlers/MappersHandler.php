@@ -10,21 +10,17 @@ if (!defined('ABSPATH')) {
 // so that the Tainacan classes and functions are available.
 class TietaRegisterMappers {
     public function __construct() {
-        add_action('init', [$this, 'Tieta_registerCustomMappers']);
+        $this->registerCustomMappers();
     }
 
-    public function Tieta_registerCustomMappers() {
-       
-        function tietaMappers($mappers) {
-            error_log('Registering custom mappers'. print_r($mappers, true));
+    function tietaMappers($mappers) {
+        $mappers->register_mapper('\TietaTainacan\MuseologyMapper');
+        $mappers->register_mapper('\TietaTainacan\BiblioteconomyMapper');
+        $mappers->register_mapper('\TietaTainacan\ArchivologyMapper');
+    }
 
-            $mappers->register_mapper('\TietaTainacan\MuseologyMapper');
-            $mappers->register_mapper('\TietaTainacan\BiblioteconomyMapper');
-            $mappers->register_mapper('\TietaTainacan\ArchivologyMapper');
-        }
-        
-        add_action('tainacan-register-mappers', 'tietaMappers');
-        error_log('Custom mappers registered');
+    public function registerCustomMappers() {
+        add_action('tainacan-register-mappers', [$this, 'tietaMappers']);
     }
 }
 
