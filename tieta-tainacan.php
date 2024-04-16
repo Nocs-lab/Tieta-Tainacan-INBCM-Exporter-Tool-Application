@@ -81,10 +81,16 @@ function TietaTainacanSuper() {
                 // public includes goes here
                 if (is_plugin_active('tainacan/tainacan.php')) {
                     // Include the custom exporter and utility class files
-                    include_once plugin_dir_path(__FILE__) . 'src/includes/TietaExportHandler.php';
-                    include_once plugin_dir_path(__FILE__) . 'src/includes/MuseumInventoryExporter.php';
-                    // include_once plugin_dir_path(__FILE__) . 'src/includes/SpreadsheetGenerator.php';
-
+                    include_once plugin_dir_path(__FILE__) . 'src/includes/handlers/ExportHandler.php';
+                    include_once plugin_dir_path(__FILE__) . 'src/includes/handlers/ImportHandler.php';
+                    include_once plugin_dir_path(__FILE__) . 'src/includes/handlers/MappersHandler.php';
+                    // include our workers
+                    include_once plugin_dir_path(__FILE__) . 'src/includes/workers/MuseumInventoryExporter.php';
+                    include_once plugin_dir_path(__FILE__) . 'src/includes/workers/MuseumInventoryImporter.php';
+                    // include our mappers
+                    include_once plugin_dir_path(__FILE__) . 'src/includes/mappers/MuseologyMapper.php';
+                    include_once plugin_dir_path(__FILE__) . 'src/includes/mappers/BiblioteconomyMapper.php';
+                    include_once plugin_dir_path(__FILE__) . 'src/includes/mappers/ArchivologyMapper.php';
                 }
             }
 
