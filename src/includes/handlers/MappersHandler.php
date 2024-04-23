@@ -14,9 +14,9 @@ class TietaRegisterMappers {
     }
 
     function tietaMappers($mappers) {
-        $mappers->register_mapper('\TietaTainacan\MuseologyMapper');
-        $mappers->register_mapper('\TietaTainacan\BiblioteconomyMapper');
-        $mappers->register_mapper('\TietaTainacan\ArchivologyMapper');
+        $mappers->register_mapper('TietaTainacan\MuseologyMapper');
+        $mappers->register_mapper('TietaTainacan\BiblioteconomyMapper');
+        $mappers->register_mapper('TietaTainacan\ArchivologyMapper');
     }
 
     public function registerCustomMappers() {
