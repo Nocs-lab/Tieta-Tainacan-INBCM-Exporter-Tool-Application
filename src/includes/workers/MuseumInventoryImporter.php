@@ -38,10 +38,12 @@ class MuseumInventoryImporter extends Importer {
     }
 
     public function process_item($index, $collection_definition) {
-        error_log('Processing item at index ' . $index . ' in collection ' . print_r($collection_definition, true));
+        // error_log('Processing item at index ' . $index . ' in collection ' . print_r($collection_definition, true));
     
-        $mappedData = [];
-        $mappedData['id'] = $collection_definition['id'];
+        // Initialize the result array
+        $results = []; // This will be an array of mappings
+    
+        // Check file existence
         if (file_exists($this->get_tmp_file())) {
             $reader = ReaderEntityFactory::createReaderFromFile($this->get_tmp_file());
             $reader->open($this->get_tmp_file());
@@ -49,38 +51,44 @@ class MuseumInventoryImporter extends Importer {
             $header = [];
             $rowCounter = 0;
     
+            // Iterate over each sheet and row
             foreach ($reader->getSheetIterator() as $sheet) {
                 foreach ($sheet->getRowIterator() as $row) {
                     if ($rowCounter === 0) {
                         $header = $row->toArray();
-                        error_log('Headers found: ' . print_r($header, true));
-                    } else {
-                        if ($rowCounter - 1 === $index) {
-                            $rowData = $row->toArray();
-                            error_log('Data for index ' . $index . ': ' . print_r($rowData, true));
-                            foreach ($collection_definition['mapping'] as $id => $columnName) {
-                                $columnIndex = array_search($columnName, $header);
-                                if ($columnIndex !== false) {
-                                    $mappedData['mapping'][$id] = $rowData[$columnIndex];
-                                } else {
-                                    error_log('Column not found for mapping: ' . $columnName);
-                                }
+                    } else if ($rowCounter - 1 === $index) {
+                        $rowData = $row->toArray();
+                        // $mappedData = ['collection' => $collection_definition['id']];
+                        foreach ($collection_definition['mapping'] as $id => $columnName) {
+                            $columnIndex = array_search($columnName, $header);
+                            if ($columnIndex !== false) {
+                                // Fill the 'mapping' array with metadata ID as key and cell data as value
+                                $mappedData[$columnName] = strval($rowData[$columnIndex]);
+                            } else {
+                                error_log('Column not found for mapping: ' . $columnName);
                             }
-                            break;
                         }
+                        $results = $mappedData; // Append the mapped data for this item to the results
+                        break; // Process only the needed row
                     }
                     $rowCounter++;
                 }
                 if ($rowCounter - 1 > $index) {
-                    break;
+                    break; // Stop if passed the needed row
                 }
             }
             $reader->close();
+        } else {
+            // Handle file not found error
+            // error_log('File not found: ' . $this->get_tmp_file());
+            return false;
         }
     
-        error_log('Mapped data: ' . print_r($mappedData, true));
-        return $mappedData;
+        // error_log('Mapped data: ' . print_r($results, true));
+        return $results; // Return the results array
     }
+    
+    
     
     
 
