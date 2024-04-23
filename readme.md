@@ -41,7 +41,7 @@ Once the plugin is activated, it integrates directly into the Tainacan export fu
 
 ## Configuration
 
-This plugin requires no additional configuration outside the standard Tainacan setup. However, ensure that Tainacan is installed and activated before activating this plugin.
+Composer is required to run this plugin, run  ```$ composer install```
 
 ## Contributing
 
@@ -59,4 +59,5 @@ This plugin is licensed under the [GPLv2 (or later)](https://www.gnu.org/license
 ## Support
 
 For support with this plugin, please [open an issue](link-to-your-repo/issues) in the GitHub repository. For general Tainacan support, refer to the [Tainacan documentation](https://tainacan.org/documentacao/).
+
 
