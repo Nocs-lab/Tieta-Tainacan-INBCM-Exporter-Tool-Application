@@ -340,19 +340,7 @@ class MuseumInventoryExporter extends Exporter {
                 }
             }
         }
-    
-        $headerRowContents = array_merge($headerRowContents, [
-            'special_item_status',
-            'special_document',
-            'special_attachments',
-            'special_comment_status',
-            'author_name',
-            'creation_date',
-            'user_last_modified',
-            'modification_date',
-            'public_url'
-        ]);
-    
+          
     
         $headerRow = WriterEntityFactory::createRowFromArray($headerRowContents);
         $this->writer->addRow($headerRow);
