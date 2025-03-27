@@ -9,8 +9,8 @@ if (!defined('ABSPATH')) {
 
 
 class ArchivologyMapper extends Mapper {
-    public $name = 'INCBM Archivology Mapper';
-    public $slug = 'incbm-archive';
+    public $name = 'INBCM Archivology Mapper';
+    public $slug = 'inbcm-arquivologia';
     public $metadata = [
         'codigoDeReferencia' => [
             'label' => 'Cód. de Referência',
