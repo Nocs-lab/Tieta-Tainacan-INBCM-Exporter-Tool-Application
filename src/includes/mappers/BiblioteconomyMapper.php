@@ -9,8 +9,8 @@ if (!defined('ABSPATH')) {
 
 
 class BiblioteconomyMapper extends Mapper {
-    public $name = 'INCBM Biblioteconomy Mapper';
-    public $slug = 'incbm-bible';
+    public $name = 'INBCM Biblioteconomy Mapper';
+    public $slug = 'inbcm-biblioteconomia';
     public $metadata = [
         'numeroDeRegistro' => [
             'label' => 'Nº de Registro',
@@ -73,5 +73,5 @@ class BiblioteconomyMapper extends Mapper {
     
     public $allow_extra_fields = false;
     public $context_url = 'http://schema.org';
-    public $type = 'INCBM';
+    public $type = 'INBCM';
 }

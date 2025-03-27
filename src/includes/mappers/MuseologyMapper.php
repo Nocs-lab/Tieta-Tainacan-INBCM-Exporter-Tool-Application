@@ -9,8 +9,8 @@ if (!defined('ABSPATH')) {
 
 
 class MuseologyMapper extends Mapper {
-    public $name = 'INCBM Museology Mapper';
-    public $slug = 'incbm-museum';
+    public $name = 'INBCM Museology Mapper';
+    public $slug = 'inbcm-museologia';
     public $metadata = [
         'numeroDeRegistro' => [
             'label' => 'Nº de Registro',

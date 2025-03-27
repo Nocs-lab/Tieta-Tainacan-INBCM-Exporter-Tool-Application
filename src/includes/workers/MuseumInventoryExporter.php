@@ -15,6 +15,7 @@ class MuseumInventoryExporter extends Exporter {
     private $writer;
     private $file_path;
     private $tempFilePath;
+    private $filePath;
 
     public function __construct($attributes = array()) {
         parent::__construct($attributes);
@@ -39,7 +40,7 @@ class MuseumInventoryExporter extends Exporter {
             'multivalued_delimiter' => '||',
             'enclosure' => '"',
         ]);
-        $this->set_accepted_mapping_methods('list', "incbm-museum", ["incbm-museum", "incbm-library", "incbm-archive"]);
+        $this->set_accepted_mapping_methods('list', "inbcm-museologia", ["inbcm-museologia", "inbcm-bibloteconomia", "inbcm-arquivologia"]);
         $this->accept_no_mapping = true;
     }
 
@@ -47,6 +48,10 @@ class MuseumInventoryExporter extends Exporter {
         
         // Verifica se o arquivo já existe para ler os dados existentes
         if (file_exists($this->filePath)) {
+            if (!is_writable(dirname($this->filePath))) {
+                throw new \Exception("O diretório de upload não tem permissão de escrita.");
+            }
+
             $tempFilePath = "";
             // Cria um novo arquivo temporário para escrita
             $tempFilePath = $this->filePath . "temp_" .  uniqid() . ".xlsx";
@@ -72,6 +77,10 @@ class MuseumInventoryExporter extends Exporter {
     
             $reader->close();
         } else {
+            if (file_exists($this->filePath) && !is_writable($this->filePath)) {
+                throw new \Exception("O arquivo existente não tem permissão de escrita.");
+            }
+            
             // Se o arquivo não existir, cria um novo arquivo
             $writer = WriterEntityFactory::createXLSXWriter();
             $writer->openToFile($this->filePath);
@@ -361,10 +370,9 @@ class MuseumInventoryExporter extends Exporter {
             // Obtém o caminho base do diretório de uploads do WordPress
             $upload_dir = wp_upload_dir();
             $upload_path = $upload_dir['path'];
-            $file_name = $this->collection_name . '.xlsx';
+            $file_name = $this->collection_name;
             $file_path = $upload_path . '/' . $file_name;
-    
-            // Verifica se o arquivo foi criado
+
             if (file_exists($file_path)) {
                 $current_user = wp_get_current_user();
                 $author_name = $current_user->user_login;

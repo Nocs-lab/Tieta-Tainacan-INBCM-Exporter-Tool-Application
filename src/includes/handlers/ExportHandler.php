@@ -18,8 +18,8 @@ class TietaRegisterExporter {
 
         if (isset($Tainacan_Exporter_Handler)) {
             $Tainacan_Exporter_Handler->register_exporter([
-                'name' => __('XLSX for the National Inventory of Museum Cultural Assets (INBCM)', 'tieta-tainacan'),
-                'description' => __('Allows you to export your collection to a .XLXS file according to the model of IBRAM\'s national inventory of cultural assets.', 'tieta-tainacan'),
+                'name' => __('XLSX para o Inventário Nacional dos Bens Culturais Musealizados (INBCM)', 'tieta-tainacan'),
+                'description' => __('Permite exportar sua coleção para um arquivo .XLSX conforme o modelo do inventário nacional dos bens culturais musealizados do IBRAM.', 'tieta-tainacan'),
                 'slug' => 'inbcm-exporter',
                 'class_name' => '\TietaTainacan\MuseumInventoryExporter', // Ensure this class is correctly defined and autoloaded
                 'manual_mapping' => true,
